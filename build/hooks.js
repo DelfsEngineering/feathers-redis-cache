@@ -11,10 +11,11 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -49,6 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.purgeGroup = exports.hashCode = void 0;
 var moment_1 = __importDefault(require("moment/moment"));
 var chalk_1 = __importDefault(require("chalk"));
 var qs_1 = __importDefault(require("qs"));
@@ -86,7 +88,7 @@ function purgeGroup(client, group, prefix) {
             return [2, new Promise(function (resolve, reject) {
                     var cursor = '0';
                     function scan() {
-                        client.scan(cursor, 'MATCH', "" + prefix + group + "*", 'COUNT', '1000', function (err, reply) {
+                        client.scan(cursor, 'MATCH', "" + prefix + group + "*", 'COUNT', '10000', function (err, reply) {
                             if (err)
                                 return reject(err);
                             if (!Array.isArray(reply[1]) || !reply[1][0])
@@ -135,11 +137,11 @@ exports.default = {
                 }
                 return new Promise(function (resolve) {
                     var client = hook.app.get('redisClient');
-                    var options = __assign({}, defaults, passedOptions);
+                    var options = __assign(__assign({}, defaults), passedOptions);
                     if (!client) {
                         return resolve(hook);
                     }
-                    var group = typeof options.cacheKey === 'function' ?
+                    var group = typeof options.cacheGroupKey === 'function' ?
                         hashCode("group-" + options.cacheGroupKey(hook)) :
                         hashCode("group-" + (hook.path || 'general'));
                     var path = typeof options.cacheKey === 'function' ?
@@ -191,7 +193,7 @@ exports.default = {
                 }
                 return new Promise(function (resolve) {
                     var client = hook.app.get('redisClient');
-                    var options = __assign({}, defaults, passedOptions);
+                    var options = __assign(__assign({}, defaults), passedOptions);
                     var duration = options.expiration || options.defaultExpiration;
                     var cacheKey = hook.params.cacheKey;
                     if (!client) {
@@ -224,9 +226,9 @@ exports.default = {
             try {
                 return new Promise(function (resolve) {
                     var client = hook.app.get('redisClient');
-                    var options = __assign({}, defaults, passedOptions);
+                    var options = __assign(__assign({}, defaults), passedOptions);
                     var prefix = hook.app.get('redis').prefix;
-                    var group = typeof options.cacheKey === 'function' ?
+                    var group = typeof options.cacheGroupKey === 'function' ?
                         hashCode("group-" + options.cacheGroupKey(hook)) :
                         hashCode("group-" + (hook.path || 'general'));
                     if (!client) {

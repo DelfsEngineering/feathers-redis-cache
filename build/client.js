@@ -29,7 +29,7 @@ exports.default = (function (options) {
         var app = this;
         var config = app.get('redis') || {};
         try {
-            var redisOptions = __assign({ prefix: defaultPrefix }, config, { retry_strategy: function () {
+            var redisOptions = __assign(__assign({ prefix: defaultPrefix }, config), { retry_strategy: function () {
                     app.set('redisClient', undefined);
                     console.log(chalk_1.default.yellow('[redis]') + " not connected");
                     return retryInterval;
