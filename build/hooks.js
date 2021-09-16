@@ -88,11 +88,9 @@ function purgeGroup(client, group, prefix) {
             return [2, new Promise(function (resolve, reject) {
                     var cursor = '0';
                     function scan() {
-                        client.scan(cursor, 'MATCH', "" + prefix + group + "*", 'COUNT', '10000', function (err, reply) {
+                        client.scan(cursor, 'MATCH', "" + prefix + group + "*", 'COUNT', '3000', function (err, reply) {
                             if (err)
                                 return reject(err);
-                            if (!Array.isArray(reply[1]) || !reply[1][0])
-                                return resolve();
                             cursor = reply[0];
                             var keys = reply[1];
                             var batchKeys = keys.reduce(function (a, c) {
@@ -114,6 +112,8 @@ function purgeGroup(client, group, prefix) {
                             }, function (err) {
                                 if (err)
                                     return reject(err);
+                                if (Number(cursor) === 0)
+                                    return resolve();
                                 return scan();
                             });
                         });
